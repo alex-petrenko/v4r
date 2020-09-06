@@ -53,8 +53,8 @@ public:
 
     void waitForFrame(uint32_t frame_id = 0);
 
-    const uint8_t *getRGB(uint32_t frame_id = 0) { return rgb_[frame_id]; }
-    const float *getDepth(uint32_t frame_id = 0) { return depth_[frame_id]; }
+    const uint8_t *getRGB(uint32_t frame_id = 0) const { return rgb_[frame_id]; }
+    const float *getDepth(uint32_t frame_id = 0) const { return depth_[frame_id]; }
 
 protected:
     CommandStream(Handle<CommandStreamState> &&state,
