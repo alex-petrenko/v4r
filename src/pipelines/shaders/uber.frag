@@ -107,20 +107,32 @@ vec4 compute_color()
     float shininess = SHININESS_ACCESS;
 #endif
 
-    vec3 Lo = vec3(0.0);
-    for (int light_idx = 0; light_idx < lighting_info.numLights; light_idx++) {
-        vec3 world_light_position =
-            lighting_info.lights[light_idx].position.xyz;
-        vec3 light_position =
-                (view_info[render_const.batchIdx].view *
-                    vec4(world_light_position, 1.f)).xyz;
-        vec3 light_color = lighting_info.lights[light_idx].color.xyz;
-        BRDFParams brdf_params = makeBRDFParams(light_position, in_camera_pos,
-                                                in_normal, light_color);
+    vec3 finalAmbientColor = vec3(0.33f) * diffuse.rgb;  // 0.33 for 0x555555_rgb ambient color
+    vec3 finalDiffuseColor = vec3(0.73f) * diffuse.rgb;  // 0.33 for 0xbbbbbb_rgb diffuse color
 
-#ifdef BLINN_PHONG
-        Lo += blinnPhong(brdf_params, shininess, diffuse, specular);
-#endif
+    vec3 Lo = finalAmbientColor;
+
+    for (int light_idx = 0; light_idx < lighting_info.numLights; light_idx++) {
+        vec3 world_light_position = lighting_info.lights[light_idx].position.xyz;
+
+        vec3 light_position = (view_info[render_const.batchIdx].view * vec4(world_light_position, 1.f)).xyz;
+//        vec3 light_position = world_light_position;  // interpret as position in camera space, just like in Magnum
+
+        highp vec3 cameraDirection = -in_camera_pos;
+        highp vec3 lightDirection = light_position + cameraDirection;
+
+        highp vec3 normalizedLightDirection = normalize(lightDirection);
+        mediump vec3 normalizedTransformedNormal = normalize(in_normal);
+        lowp float intensity = max(0.0, dot(normalizedTransformedNormal, normalizedLightDirection));
+
+        vec3 light_color = lighting_info.lights[light_idx].color.xyz;
+        Lo += vec3(finalDiffuseColor * light_color.rgb * intensity);
+
+        if (intensity > 0.001) {
+            highp vec3 reflection = reflect(-normalizedLightDirection, normalizedTransformedNormal);
+            mediump float specularity = clamp(pow(max(0.0, dot(normalize(cameraDirection), reflection)), shininess), 0.0, 1.0);
+            Lo += specular * specularity;
+        }
     }
 
     return vec4(Lo, 1.f);

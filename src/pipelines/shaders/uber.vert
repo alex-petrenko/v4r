@@ -77,7 +77,6 @@ void main()
 #endif
 
     out_camera_pos = camera_space.xyz;
-
 #endif
 
 #ifdef HAS_TEXTURES
