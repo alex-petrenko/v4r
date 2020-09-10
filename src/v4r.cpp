@@ -6,7 +6,21 @@
 #include "cuda_state.hpp"
 
 #include <cassert>
-#include <filesystem>
+
+#ifdef __has_include
+    #if __has_include(<filesystem>)
+        #include <filesystem>
+        namespace fs = std::filesystem;
+        #define STD_FILESYSTEM
+    #elif __has_include(<experimental/filesystem>)
+        #include <experimental/filesystem>
+        namespace fs = std::experimental::filesystem;
+        #define STD_FILESYSTEM
+    #else
+        // there's still hope that we won't need any of the <filesystem> functions, so let's not fail yet
+    #endif
+#endif
+
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -52,7 +66,8 @@ shared_ptr<Mesh> AssetLoader::loadMesh(
 shared_ptr<Texture> AssetLoader::loadTexture(
         string_view texture_path)
 {
-    ifstream texture_file(filesystem::path(texture_path),
+#ifdef STD_FILESYSTEM
+    ifstream texture_file(fs::path(texture_path),
                           ios::in | ios::binary);
     if (!texture_file) {
         cerr << "Failed to read texture at " << texture_path << endl;
@@ -68,6 +83,10 @@ shared_ptr<Texture> AssetLoader::loadTexture(
     texture_file.close();
 
     return state_->loadTexture(raw);
+#else
+    static_assert("Use compiler that supports std::filesystem to enable texture loading. g++-8 should work!");
+    return nullptr;
+#endif
 }
 
 template <typename MaterialParamsType>
