@@ -12,10 +12,6 @@
         #include <filesystem>
         namespace fs = std::filesystem;
         #define STD_FILESYSTEM
-    #elif __has_include(<experimental/filesystem>)
-        #include <experimental/filesystem>
-        namespace fs = std::experimental::filesystem;
-        #define STD_FILESYSTEM
     #else
         // there's still hope that we won't need any of the <filesystem> functions, so let's not fail yet
     #endif
