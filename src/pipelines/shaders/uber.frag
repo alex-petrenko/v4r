@@ -131,12 +131,12 @@ vec4 compute_color()
             vec3 cameraDirection = -in_camera_pos;
             vec3 lightDirection = light_position + cameraDirection;
             vec3 normalizedLightDirection = normalize(lightDirection);
-            mediump vec3 normalizedTransformedNormal = normalize(in_normal);
-            lowp float intensity = max(0.0, dot(normalizedTransformedNormal, normalizedLightDirection));
+            vec3 normalizedTransformedNormal = normalize(in_normal);
+            float intensity = max(0.0, dot(normalizedTransformedNormal, normalizedLightDirection));
             Lo += vec3(finalDiffuseColor * light_color.rgb * intensity);
             if (intensity > 0.001) {
-                highp vec3 reflection = reflect(-normalizedLightDirection, normalizedTransformedNormal);
-                mediump float specularity = clamp(pow(max(0.0, dot(normalize(cameraDirection), reflection)), shininess), 0.0, 1.0);
+                vec3 reflection = reflect(-normalizedLightDirection, normalizedTransformedNormal);
+                float specularity = clamp(pow(max(0.0, dot(normalize(cameraDirection), reflection)), shininess), 0.0, 1.0);
                 Lo += specular * specularity;
             }
         #endif
