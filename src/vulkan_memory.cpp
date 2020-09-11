@@ -327,7 +327,7 @@ static MemoryTypeIndices findTypeIndices(const DeviceState &dev,
 
     uint32_t host_generic_type_idx = findMemoryTypeIndex(
             host_generic_reqs.memoryTypeBits,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
             dev_mem_props);
 
     VkMemoryRequirements geometry_reqs =
