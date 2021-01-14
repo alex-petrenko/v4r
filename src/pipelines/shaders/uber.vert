@@ -69,11 +69,23 @@ void main()
     mat3 normal_mat = mat3(normal_txfm1, normal_txfm2, normal_txfm3);
     out_normal = normal_mat * in_normal;
 #else
-    mat3 normal_mat = mat3(mv);
-    vec3 normal_scale = vec3(1.f / dot(normal_mat[0], normal_mat[0]),
-                             1.f / dot(normal_mat[1], normal_mat[1]),
-                             1.f / dot(normal_mat[2], normal_mat[2]));
-    out_normal = normal_mat * in_normal * normal_scale;
+//    mat3 normal_mat = mat3(mv);
+
+//    mat3 normal_mat = mat3(model);
+//    mat3 normal_mat = mat3(view_info[render_const.batchIdx].view);
+
+//    vec3 normal_scale = vec3(1.f / dot(normal_mat[0], normal_mat[0]),
+//                             1.f / dot(normal_mat[1], normal_mat[1]),
+//                             1.f / dot(normal_mat[2], normal_mat[2]));
+
+//    vec3 normal_scale = vec3(1.f / dot(vec3(model[0]), vec3(model[0])),
+//                             1.f / dot(vec3(model[1]), vec3(model[1])),
+//                             1.f / dot(vec3(model[2]), vec3(model[2])));
+//
+//    out_normal = normal_mat * in_normal * normal_scale;
+
+    mat3 normal_mat = transpose(inverse(mat3(mv)));
+    out_normal = normal_mat * in_normal;
 #endif
 
     out_camera_pos = camera_space.xyz;
