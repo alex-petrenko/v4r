@@ -763,6 +763,8 @@ static std::shared_ptr<Texture> gltfLoadTexture(const GLTFScene &scene,
     } else {
         assert(false);
     }
+
+    return std::shared_ptr<Texture>();  // should never reach this line
 }
 
 template <typename MaterialParamsType>
