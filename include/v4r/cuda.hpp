@@ -8,8 +8,8 @@
 
 namespace v4r {
 
-struct CudaStreamState;
-struct CudaState;
+class CudaStreamState;
+class CudaState;
 struct SyncState;
 
 class BatchRendererCUDA;

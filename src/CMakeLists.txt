@@ -1,4 +1,5 @@
 include_directories(${ASSIMP_INCLUDE_DIRS})
+
 include_directories(${GLM_INCLUDE_DIRS})
 
 add_definitions(-DVK_NO_PROTOTYPES -DGLM_FORCE_DEPTH_ZERO_TO_ONE)
@@ -73,8 +74,7 @@ target_include_directories(v4r
 
 add_dependencies(v4r generate_vk_dispatch compile_shaders)
 
-target_link_libraries(v4r Vulkan::Vulkan CUDA::cudart
-    Threads::Threads assimp::assimp simdjson basis_universal)
+target_link_libraries(v4r Vulkan::Vulkan CUDA::cudart Threads::Threads assimp::assimp simdjson basis_universal)
 
 add_library(v4r_headless INTERFACE)
 add_dependencies(v4r_headless v4r)

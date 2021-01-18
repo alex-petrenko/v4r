@@ -49,7 +49,7 @@ include_directories(external)
 find_package(CUDAToolkit REQUIRED)
 
 IF (NOT USE_BUNDLED)
-    find_package(glm 0.9.9.8 CONFIG)
+    find_package(glm 0.9.9 CONFIG)
 ENDIF()
 
 IF (NOT glm_FOUND OR USE_BUNDLED)

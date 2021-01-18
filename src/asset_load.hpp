@@ -7,6 +7,7 @@
 #include <v4r/assets.hpp>
 
 #include <assimp/scene.h>
+
 #include <simdjson.h>
 
 namespace v4r {
