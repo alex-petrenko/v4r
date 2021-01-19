@@ -7,15 +7,17 @@
 
 #include <cassert>
 
-#ifdef __has_include
-    #if __has_include(<filesystem>)
-        #include <filesystem>
-        namespace fs = std::filesystem;
-        #define STD_FILESYSTEM
-    #else
-        // there's still hope that we won't need any of the <filesystem> functions, so let's not fail yet
-    #endif
-#endif
+// this still fails on some compilers, you might have <filesystem> but some functionality is still missing
+
+//#ifdef __has_include
+//    #if __has_include(<filesystem>)
+//        #include <filesystem>
+//        namespace fs = std::filesystem;
+//        #define STD_FILESYSTEM
+//    #else
+//        // there's still hope that we won't need any of the <filesystem> functions, so let's not fail yet
+//    #endif
+//#endif
 
 #include <fstream>
 #include <iostream>
