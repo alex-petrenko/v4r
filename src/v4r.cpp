@@ -7,7 +7,8 @@
 
 #include <cassert>
 
-// this still fails on some compilers, you might have <filesystem> but some functionality is still missing
+// this still fails on some compilers, you might have <filesystem> but some
+// functionality is still missing
 
 //#ifdef __has_include
 //    #if __has_include(<filesystem>)
@@ -15,7 +16,8 @@
 //        namespace fs = std::filesystem;
 //        #define STD_FILESYSTEM
 //    #else
-//        // there's still hope that we won't need any of the <filesystem> functions, so let's not fail yet
+//        // there's still hope that we won't need any of the <filesystem>
+//        functions, so let's not fail yet
 //    #endif
 //#endif
 
@@ -32,41 +34,39 @@ template struct HandleDeleter<CommandStreamState>;
 template struct HandleDeleter<VulkanState>;
 template struct HandleDeleter<EnvironmentState>;
 
-static glm::mat4 makePerspectiveMatrix(float hfov, uint32_t width,
-                                       uint32_t height, float near, float far)
+static glm::mat4 makePerspectiveMatrix(float hfov,
+                                       uint32_t width,
+                                       uint32_t height,
+                                       float near,
+                                       float far)
 {
     float aspect = static_cast<float>(width) / static_cast<float>(height);
     float half_tan = tan(glm::radians(hfov) / 2.f);
 
-    return glm::mat4(1.f / half_tan, 0.f, 0.f, 0.f,
-                     0.f, -aspect / half_tan, 0.f, 0.f,
-                     0.f, 0.f, far / (near - far), -1.f,
-                     0.f, 0.f, far * near / (near - far), 0.f);
+    return glm::mat4(1.f / half_tan, 0.f, 0.f, 0.f, 0.f, -aspect / half_tan,
+                     0.f, 0.f, 0.f, 0.f, far / (near - far), -1.f, 0.f, 0.f,
+                     far * near / (near - far), 0.f);
 }
 
-AssetLoader::AssetLoader(Handle<LoaderState> &&state)
-    : state_(move(state))
+AssetLoader::AssetLoader(Handle<LoaderState> &&state) : state_(move(state))
 {}
 
-shared_ptr<Mesh>
-AssetLoader::loadMesh(string_view geometry_path)
+shared_ptr<Mesh> AssetLoader::loadMesh(string_view geometry_path)
 {
     return state_->loadMesh(geometry_path);
 }
 
 template <typename VertexType>
-shared_ptr<Mesh> AssetLoader::loadMesh(
-        vector<VertexType> vertices, vector<uint32_t> indices)
+shared_ptr<Mesh> AssetLoader::loadMesh(vector<VertexType> vertices,
+                                       vector<uint32_t> indices)
 {
     return state_->makeMesh(move(vertices), move(indices));
 }
 
-shared_ptr<Texture> AssetLoader::loadTexture(
-        string_view texture_path)
+shared_ptr<Texture> AssetLoader::loadTexture(string_view texture_path)
 {
 #ifdef STD_FILESYSTEM
-    ifstream texture_file(fs::path(texture_path),
-                          ios::in | ios::binary);
+    ifstream texture_file(fs::path(texture_path), ios::in | ios::binary);
     if (!texture_file) {
         cerr << "Failed to read texture at " << texture_path << endl;
         fatalExit();
@@ -82,26 +82,25 @@ shared_ptr<Texture> AssetLoader::loadTexture(
 
     return state_->loadTexture(raw);
 #else
-    static_assert("Use compiler that supports std::filesystem to enable texture loading. g++-8 should work!");
+    static_assert(
+        "Use compiler that supports std::filesystem to enable texture "
+        "loading. g++-8 should work!");
     return nullptr;
 #endif
 }
 
 template <typename MaterialParamsType>
-shared_ptr<Material> AssetLoader::makeMaterial(
-        MaterialParamsType params)
+shared_ptr<Material> AssetLoader::makeMaterial(MaterialParamsType params)
 {
     return state_->makeMaterial(params);
 }
 
-shared_ptr<Scene> AssetLoader::makeScene(
-        const SceneDescription &desc)
+shared_ptr<Scene> AssetLoader::makeScene(const SceneDescription &desc)
 {
     return state_->makeScene(desc);
 }
 
-shared_ptr<Scene> AssetLoader::loadScene(
-        string_view scene_path)
+shared_ptr<Scene> AssetLoader::loadScene(string_view scene_path)
 {
     return state_->loadScene(scene_path);
 }
@@ -135,26 +134,33 @@ CommandStream::CommandStream(Handle<CommandStreamState> &&state,
 }
 
 Environment CommandStream::makeEnvironment(const shared_ptr<Scene> &scene,
-                                           float hfov, float near, float far)
+                                           float hfov,
+                                           float near,
+                                           float far,
+                                           int num_cameras)
 {
     glm::mat4 perspective =
-        makePerspectiveMatrix(hfov, render_width_, render_height_,
-                              near, far);
+        makePerspectiveMatrix(hfov, render_width_, render_height_, near, far);
 
-    return Environment(make_handle<EnvironmentState>(scene, perspective));
+    Environment env(make_handle<EnvironmentState>(scene, perspective));
+    env.actives_.reserve(num_cameras);
+    env.views_.reserve(num_cameras);
+    for (int i = 0; i < num_cameras; ++i) env.addCamera(glm::mat4 {});
+
+    return env;
 }
 
 uint32_t CommandStream::render(const std::vector<Environment> &elems)
 {
-    return  state_->render(elems);
+    return state_->render(elems);
 }
 
 template <typename PipelineType>
 BatchRenderer::BatchRenderer(const RenderConfig &cfg,
                              const RenderFeatures<PipelineType> &features)
-    : BatchRenderer(
-            make_handle<VulkanState>(cfg, features, 
-                                     getUUIDFromCudaID(cfg.gpuID)))
+    : BatchRenderer(make_handle<VulkanState>(cfg,
+                                             features,
+                                             getUUIDFromCudaID(cfg.gpuID)))
 {}
 
 BatchRenderer::BatchRenderer(Handle<VulkanState> &&vk_state)
@@ -163,8 +169,7 @@ BatchRenderer::BatchRenderer(Handle<VulkanState> &&vk_state)
 
 AssetLoader BatchRenderer::makeLoader()
 {
-    return AssetLoader(make_handle<LoaderState>(
-            state_->makeLoader()));
+    return AssetLoader(make_handle<LoaderState>(state_->makeLoader()));
 }
 
 CommandStream BatchRenderer::makeCommandStream()
@@ -173,21 +178,22 @@ CommandStream BatchRenderer::makeCommandStream()
 
     glm::u32vec2 img_dim = state_->getImageDimensions();
 
-    return CommandStream(move(stream_state),
-                         img_dim.x, img_dim.y,
+    return CommandStream(move(stream_state), img_dim.x, img_dim.y,
                          state_->getResultBuffer(),
                          state_->isDoubleBuffered());
 }
 
 Environment::Environment(Handle<EnvironmentState> &&state)
     : state_(move(state)),
-      view_(),
+      views_ {},
+      actives_ {},
       index_map_(state_->scene->envDefaults.indexMap),
       transforms_(state_->scene->envDefaults.transforms),
       materials_(state_->scene->envDefaults.materials)
 {}
 
-uint32_t Environment::addInstance(uint32_t model_idx, uint32_t material_idx,
+uint32_t Environment::addInstance(uint32_t model_idx,
+                                  uint32_t material_idx,
                                   const glm::mat4x3 &model_matrix)
 {
     transforms_[model_idx].emplace_back(model_matrix);
@@ -228,7 +234,7 @@ void Environment::deleteInstance(uint32_t inst_id)
         transforms[instance_idx] = transforms.back();
         materials[instance_idx] = materials.back();
         reverse_ids[instance_idx] = reverse_ids.back();
-        index_map_[reverse_ids[instance_idx]] = { model_idx, instance_idx };
+        index_map_[reverse_ids[instance_idx]] = {model_idx, instance_idx};
 
         transforms.pop_back();
         materials.pop_back();
@@ -241,10 +247,8 @@ void Environment::deleteInstance(uint32_t inst_id)
 uint32_t Environment::addLight(const glm::vec3 &position,
                                const glm::vec3 &color)
 {
-    state_->lights.push_back({
-        glm::vec4(position, 1.f),
-        glm::vec4(color, 1.f)
-    });
+    state_->lights.push_back(
+        {glm::vec4(position, 1.f), glm::vec4(color, 1.f)});
 
     uint32_t light_idx = state_->lights.size() - 1;
 

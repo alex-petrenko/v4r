@@ -9,11 +9,12 @@ namespace v4r {
 
 class MemoryAllocator;
 
-template<bool host_mapped>
+template <bool host_mapped>
 class AllocDeleter {
 public:
     AllocDeleter(VkDeviceMemory mem, MemoryAllocator &alloc)
-        : mem_(mem), alloc_(alloc)
+        : mem_(mem),
+          alloc_(alloc)
     {}
 
     void operator()(VkBuffer buffer) const;
@@ -34,13 +35,16 @@ public:
     ~HostBuffer();
 
     void flush(const DeviceState &dev);
-    void flush(const DeviceState &dev, VkDeviceSize offset,
+    void flush(const DeviceState &dev,
+               VkDeviceSize offset,
                VkDeviceSize num_bytes);
 
     VkBuffer buffer;
     void *ptr;
+
 private:
-    HostBuffer(VkBuffer buf, void *p,
+    HostBuffer(VkBuffer buf,
+               void *p,
                VkMappedMemoryRange mem_range,
                AllocDeleter<true> deleter);
 
@@ -57,6 +61,7 @@ public:
     ~LocalBuffer();
 
     VkBuffer buffer;
+
 private:
     LocalBuffer(VkBuffer buf, AllocDeleter<false> deleter);
 
@@ -74,9 +79,13 @@ public:
     uint32_t height;
     uint32_t mipLevels;
     VkImage image;
+
 private:
-    LocalImage(uint32_t width, uint32_t height, uint32_t mip_levels,
-               VkImage image, AllocDeleter<false> deleter);
+    LocalImage(uint32_t width,
+               uint32_t height,
+               uint32_t mip_levels,
+               VkImage image,
+               AllocDeleter<false> deleter);
 
     AllocDeleter<false> deleter_;
     friend class MemoryAllocator;
@@ -117,16 +126,18 @@ public:
     HostBuffer makeStagingBuffer(VkDeviceSize num_bytes);
     HostBuffer makeShaderBuffer(VkDeviceSize num_bytes);
     HostBuffer makeHostBuffer(VkDeviceSize num_bytes);
+    HostBuffer makeResultsBuffer(VkDeviceSize num_bytes);
 
     LocalBuffer makeGeometryBuffer(VkDeviceSize num_bytes);
     LocalBuffer makeLocalBuffer(VkDeviceSize num_bytes);
 
     std::pair<LocalBuffer, VkDeviceMemory> makeDedicatedBuffer(
-            VkDeviceSize num_bytes);
+        VkDeviceSize num_bytes);
 
-    LocalImage makeTexture(uint32_t width, uint32_t height,
+    LocalImage makeTexture(uint32_t width,
+                           uint32_t height,
                            uint32_t mip_levels,
-                           bool precomputed_mipmaps=false);
+                           bool precomputed_mipmaps = false);
 
     LocalImage makeColorAttachment(uint32_t width, uint32_t height);
     LocalImage makeDepthAttachment(uint32_t width, uint32_t height);
@@ -146,16 +157,20 @@ private:
                                 VkBufferUsageFlags usage,
                                 uint32_t mem_idx);
 
-    LocalImage makeDedicatedImage(uint32_t width, uint32_t height,
-                                  uint32_t mip_levels, VkFormat format,
-                                  VkImageUsageFlags usage, uint32_t type_idx);
+    LocalImage makeDedicatedImage(uint32_t width,
+                                  uint32_t height,
+                                  uint32_t mip_levels,
+                                  VkFormat format,
+                                  VkImageUsageFlags usage,
+                                  uint32_t type_idx);
 
     const DeviceState &dev;
     ResourceFormats formats_;
     MemoryTypeIndices type_indices_;
     Alignments alignments_;
 
-    template<bool> friend class AllocDeleter;
+    template <bool>
+    friend class AllocDeleter;
 };
 
 }
