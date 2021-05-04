@@ -113,11 +113,11 @@ vec4 compute_color()
     vec3 finalDiffuseColor = vec3(0.73f) * diffuse.rgb;  // 0.33 for 0xbbbbbb_rgb diffuse color
     vec3 Lo = finalAmbientColor;
 
-    for (int light_idx = 0; light_idx < lighting_info.numLights; light_idx++) {
-        vec3 world_light_position = lighting_info.lights[light_idx].position.xyz;
+    for (int light_idx = 0; light_idx < render_const.numLights; light_idx++) {
+        vec3 world_light_position = lighting_info.lights[render_const.lightsOffset + light_idx].position.xyz;
         // vec3 light_position = (view_info[render_const.batchIdx].view * vec4(world_light_position, 1.f)).xyz;
         vec3 light_position = world_light_position;
-        vec3 light_color = lighting_info.lights[light_idx].color.xyz;
+        vec3 light_color = lighting_info.lights[render_const.lightsOffset + light_idx].color.xyz;
 
         #ifdef V4R_BLINN_PHONG
             BRDFParams brdf_params = makeBRDFParams(light_position, in_camera_pos,

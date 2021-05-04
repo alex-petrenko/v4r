@@ -92,9 +92,11 @@ struct PipelineProps;
 
 template <typename PipelineType>
 struct PipelineImpl {
-    static FramebufferConfig getFramebufferConfig(
-            uint32_t batch_size, uint32_t img_width, uint32_t img_height,
-            uint32_t num_streams, const RenderOptions &opts);
+    static FramebufferConfig getFramebufferConfig(uint32_t batch_size,
+                                                  uint32_t img_width,
+                                                  uint32_t img_height,
+                                                  uint32_t num_streams,
+                                                  const RenderOptions &opts);
 
     static RenderState makeRenderState(const DeviceState &dev,
                                        uint32_t batch_size,
@@ -110,7 +112,8 @@ struct PipelineImpl {
 struct FramebufferState {
 public:
     std::vector<LocalImage> attachments;
-    std::vector<VkImageView> attachmentViews; 
+    std::vector<VkImageView> attachmentViews;
+    std::vector<VkImageMemoryBarrier> barriers;
 
     VkFramebuffer hdl;
 
@@ -120,10 +123,11 @@ public:
 
 struct PerFrameState {
     VkFence fence;
-    std::array<VkCommandBuffer, 2> commands;
-    
+    std::array<VkCommandBuffer, 1> commands;
+
     glm::u32vec2 baseFBOffset;
     DynArray<glm::u32vec2> batchFBOffsets;
+    DynArray<VkBufferImageCopy> colorCopyRegions, depthCopyRegions;
 
     VkDeviceSize colorBufferOffset;
     VkDeviceSize depthBufferOffset;
@@ -163,10 +167,7 @@ public:
 
     uint32_t render(const std::vector<Environment> &envs);
 
-    VkImage getColorImage(uint32_t) const
-    {
-        return fb_.attachments[0].image;
-    }
+    VkImage getColorImage(uint32_t) const { return fb_.attachments[0].image; }
 
     glm::u32vec2 getFBOffset(uint32_t frame_idx) const
     {
@@ -175,11 +176,11 @@ public:
 
     VkDeviceSize getColorOffset(uint32_t frame_idx) const
     {
-        return frame_states_[frame_idx].colorBufferOffset; 
+        return frame_states_[frame_idx].colorBufferOffset;
     }
 
     VkDeviceSize getDepthOffset(uint32_t frame_idx) const
-    { 
+    {
         return frame_states_[frame_idx].depthBufferOffset;
     }
 
@@ -188,24 +189,18 @@ public:
         return frame_states_[frame_idx].fence;
     }
 
-    uint32_t getCurrentFrame() const {
-        return cur_frame_;
-    }
+    uint32_t getCurrentFrame() const { return cur_frame_; }
 
-    uint32_t getNumFrames() const {
-        return frame_states_.size();
-    }
+    uint32_t getNumFrames() const { return frame_states_.size(); }
 
-    glm::u32vec2 getFrameExtent() const {
-        return render_extent_;
-    }
+    glm::u32vec2 getFrameExtent() const { return render_extent_; }
 
     const InstanceState &inst;
     const DeviceState &dev;
 
     const PipelineState &pipeline;
 
-    VkCommandPool gfxPool; // FIXME move all command pools into VulkanState
+    VkCommandPool gfxPool;  // FIXME move all command pools into VulkanState
     const QueueState &gfxQueue;
 
     MemoryAllocator &alloc;

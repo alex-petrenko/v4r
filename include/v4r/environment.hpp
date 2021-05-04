@@ -13,18 +13,20 @@ namespace v4r {
 class Environment {
 public:
     Environment(Environment &&) = default;
-    Environment & operator=(Environment &&) = default;
+    Environment &operator=(Environment &&) = default;
 
     // Instance transformations
-    inline uint32_t addInstance(uint32_t model_idx, uint32_t material_idx,
+    inline uint32_t addInstance(uint32_t model_idx,
+                                uint32_t material_idx,
                                 const glm::mat4 &model_matrix);
 
-    uint32_t addInstance(uint32_t model_idx, uint32_t material_idx,
+    uint32_t addInstance(uint32_t model_idx,
+                         uint32_t material_idx,
                          const glm::mat4x3 &model_matrix);
 
     void deleteInstance(uint32_t inst_id);
 
-    inline const glm::mat4x3 & getInstanceTransform(uint32_t inst_id) const;
+    inline const glm::mat4x3 &getInstanceTransform(uint32_t inst_id) const;
 
     inline void updateInstanceTransform(uint32_t inst_id,
                                         const glm::mat4 &model_matrix);
@@ -34,17 +36,25 @@ public:
 
     inline void setInstanceMaterial(uint32_t inst_id, uint32_t material_idx);
 
-    // Camera transformations
-    inline const glm::mat4 &getCameraView() const;
+    inline uint32_t addCamera(const glm::mat4 &mat);
 
-    inline void setCameraView(const glm::vec3 &eye, const glm::vec3 &look,
+    inline void setCameraActive(uint32_t camera_idx, uint8_t is_active);
+
+    // Camera transformations
+    inline const glm::mat4 &getCameraView(uint32_t camera_idx) const;
+
+    inline void setCameraView(uint32_t camera_idx,
+                              const glm::vec3 &eye,
+                              const glm::vec3 &look,
                               const glm::vec3 &up);
 
-    inline void setCameraView(const glm::mat4 &mat);
+    inline void setCameraView(uint32_t camera_idx, const glm::mat4 &mat);
 
-    inline void rotateCamera(float angle, const glm::vec3 &axis);
+    inline void rotateCamera(uint32_t camera_idx,
+                             float angle,
+                             const glm::vec3 &axis);
 
-    inline void translateCamera(const glm::vec3 &v);
+    inline void translateCamera(uint32_t camera_idx, const glm::vec3 &v);
 
     uint32_t addLight(const glm::vec3 &position, const glm::vec3 &color);
     void deleteLight(uint32_t light_id);
@@ -53,13 +63,14 @@ private:
     Environment(Handle<EnvironmentState> &&env);
 
     Handle<EnvironmentState> state_;
-    glm::mat4 view_;
+    std::vector<glm::mat4> views_;
+    std::vector<uint8_t> actives_;
     std::vector<std::pair<uint32_t, uint32_t>> index_map_;
     std::vector<std::vector<glm::mat4x3>> transforms_;
     std::vector<std::vector<uint32_t>> materials_;
 
-friend class CommandStream;
-friend class CommandStreamState;
+    friend class CommandStream;
+    friend class CommandStreamState;
 };
 
 }
